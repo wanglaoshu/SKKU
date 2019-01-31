@@ -249,7 +249,7 @@ prediction <- function(data = NULL, Support = NULL, Confidence = NULL, a = NULL,
   print(final_suggestion)
   
   
-  ##########################################################################################
+  ##### Test Data ####
   
   data_test_df <- data.frame()
   data_test_df <- as(data_test,'data.frame')
@@ -261,34 +261,21 @@ prediction <- function(data = NULL, Support = NULL, Confidence = NULL, a = NULL,
     second_proc <- strsplit(first_proc, ',')
     data_test_list <- c(data_test_list, second_proc)
   }
-  df_test <- data.frame(matrix(nrow = length(data_test_list), ncol = 7))
-  colnames(df_test) <- c('SHIP_NO', 'DWG_TYPE', 'DWG_BLOCK', 'DWG_PROC', 'DWG_STAGE', 'RSN_CD', 'True')
   
-  for (rows in 1:(length(data_test_list))){
-    character <- unlist(data_test_list[rows])
-    df_test[rows, 1] <- data.frame(SHIP_NO = character[1], stringsAsFactors = FALSE)
-    df_test[rows, 2] <- data.frame(DWG_TYPE = character[3], stringsAsFactors = FALSE)
-    df_test[rows, 3] <- data.frame(DWG_BLOCK = character[4], stringsAsFactors = FALSE)
-    df_test[rows, 4] <- data.frame(DWG_PROC = character[5], stringsAsFactors = FALSE)
-    df_test[rows, 5] <- data.frame(DWG_STAGE = character[6], stringsAsFactors = FALSE)
-    df_test[rows, 6] <- data.frame(RSN_CD = character[2], stringsAsFactors = FALSE)
-    df_test[rows, 7] <- data.frame(True = num_true)
-    true_match <- input %in% df_test[rows, 1:5]
+  # Adjust data into a shape and type that I want
+  data_test_matrix <- do.call(rbind, data_test_list)
+  df_test <- as.data.frame(data_test_matrix)
+  df_test <- df_test[,c(1, 3, 4, 5, 6, 2)]
+  colnames(df_test) <- c('SHIP_NO', 'DWG_TYPE', 'DWG_BLOCK', 'DWG_PROC', 'DWG_STAGE', 'RSN_CD')
+  
+  #Find number of matches and enter into a new column
+  for (rows in 1: nrow(df_test)){
+    true_match <- input %in% unlist(data_test_list[rows])
     num_true <- length(which(true_match))
     df_test[rows, 7] <- data.frame(True = num_true)
   }
-  max_match <- data.frame()
-  for (rows in 1:nrow(df_test)){
-    if (df_test[rows, 7] == max(df_test[7])){
-      max_match[rows, 1] <- data.frame(SHIP_NO = df_test[rows, 1], stringsAsFactors = FALSE)
-      max_match[rows, 2] <- data.frame(DWG_TYPE = df_test[rows, 2], stringsAsFactors = FALSE)
-      max_match[rows, 3] <- data.frame(DWG_BLOCK = df_test[rows, 3], stringsAsFactors = FALSE)
-      max_match[rows, 4] <- data.frame(DWG_PROC = df_test[rows, 4], stringsAsFactors = FALSE)
-      max_match[rows, 5] <- data.frame(DWG_STAGE = df_test[rows, 5], stringsAsFactors = FALSE)
-      max_match[rows, 6] <- data.frame(RSN_CD = df_test[rows, 6], stringsAsFactors = FALSE)
-      max_match[rows, 7] <- data.frame(True = df_test[rows, 7])
-    }
-  }
+  
+  max_match <- df_test[df_test[7] == max(df_test[7]), ]
   max_match <- na.omit(max_match)
   print(head(df_test))
   print(head(max_match))
