@@ -316,7 +316,3 @@ prediction <- function(data = NULL, Support = NULL, Confidence = NULL, a = NULL,
 }
 
 prediction(data = data, Support = 0.001, Confidence = 0.4, 'DWG_BLOCK=S1','SHIP_NO=2','DWG_STAGE=2')
-
-### k-fold 넣기전 ###
-train_pct <- 0.7     # Training amount
-data_test <- data[as.integer(nrow(data)*train_pct):nrow(data),]
