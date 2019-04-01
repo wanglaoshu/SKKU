@@ -1,4 +1,4 @@
-data <- read.csv("/Users/heeyoungpark/Desktop/연구실 stuff/final_dataset_csv.csv", header=TRUE, sep=',')
+data <- read.csv(url('http://bit.ly/2I4TPs0'), header=TRUE, sep=',')
 pkgs <- c("tidyr", "arules",'caret')
 install.packages(pkgs)
 sapply(pkgs, require, character.only = T)
@@ -73,7 +73,7 @@ prediction <- function(data = NULL, Support = 0.001, Confidence = 0.4, a = NULL,
     ################
     # Generate rules (apriori)
     ################
-    rules <- apriori(data = data_train, parameter = list(support = 0.000000000001, confidence = 0.01), 
+    rules <- apriori(data = data_train, parameter = list(support = 0.00000001, confidence = 0.01), 
                      appearance = list(rhs = RSN), control = list(verbose = FALSE))
     quality(rules) <- cbind(quality(rules), CF = interestMeasure(rules, measure = "certainty", trans = data))
     quality(rules) <- cbind(quality(rules), CV = interestMeasure(rules, measure = "conviction", trans = data))
@@ -97,7 +97,7 @@ prediction <- function(data = NULL, Support = 0.001, Confidence = 0.4, a = NULL,
       second_proc <- strsplit(first_proc, ',')
     })
     
-    y <- x
+    y <- x #Rule set
     #Rules####
     s <- apply(y[1], 1, function(x){
       first_proc <- gsub('[{}]', '', x)
@@ -105,15 +105,14 @@ prediction <- function(data = NULL, Support = 0.001, Confidence = 0.4, a = NULL,
       second_proc <- strsplit(first_proc, ',')
     }) 
     
-    
     system.time(for (i in 1:length(data_1)){
       ui <- unlist(data_1[i]) # training set에서의 i번쨰 조합
       
       # ruleset에서의 ui가 얼마나 매칭되는지
-      t <- lapply(s, function(x){
+      system.time(t <- lapply(s, function(x){
         a <- unlist(x)
         return(length(which(a %in% ui)))
-      })
+      }))
       
       t <- unlist(t)
       no_match <- as.data.frame(t)
@@ -121,7 +120,7 @@ prediction <- function(data = NULL, Support = 0.001, Confidence = 0.4, a = NULL,
       z <- z[order(z[9], decreasing = TRUE),]
       z <- subset(z, z[9] == max(z[9]))
       z <- z[order(z[4], decreasing = TRUE),]
-      recommendation <- z[1:1,] #한개 추천 ( 추후에 1 대신 파라미터로)
+      recommendation <- z[1:3,] #한개 추천 (추후에 1 대신 파라미터로)
       recommendation <- recommendation[2]
       recommendation <- as(recommendation,'list')
       recommendation <- unlist(recommendation)
@@ -149,6 +148,9 @@ prediction <- function(data = NULL, Support = 0.001, Confidence = 0.4, a = NULL,
 }
 
 #bb <- prediction(data = data, Support = 0.0000001, Confidence = 0.01,'SHIP_NO=2','DWG_BLOCK=S1',result = 2, examination = TRUE)
+
+
+
     
 ##### 연습용 ############################    
     y[9] <- x[]
@@ -209,3 +211,33 @@ prediction <- function(data = NULL, Support = 0.001, Confidence = 0.4, a = NULL,
     system.time(for (i in 1:length(data_1)){
       ui <- unlist(data_1[i])})
     
+    xxx <- sapply(xxx, function(x){
+      a <- gsub('[{}]','',x)
+    })
+    xxx[6] <- sapply(xxx[6], function(x){
+      a <- gsub('RSN_CD=','',x)
+    })
+    
+    colnames(xxx) <- c('SHIP_NO','DWG_TYPE','DWG_BLOCK','DWG_PROC',"DWG_STAGE",'RSN_CD')
+    
+    library(stringr)
+    install.packages(splitstackshape)
+    library(splitstackshape)
+    xxx <- separate(xxz, col = newcol, into = c('1','2','3','4','5','6'), sep = ',')
+    
+    
+  
+    xxx <- cbind(xx[1],xx[2])
+    xxx <- unite(xxx, newcol, c(Input, Output), sep = ',')
+    xxx <- sapply(xxx, function(x){
+      a <- gsub('[{}]','',x)
+    })
+    xxz <- as.data.frame(xxx)
+    xxx <- separate(xxz, col = newcol, into = c('1','2','3','4','5','6'), sep = ',')
+    
+    yyy <- data.frame()
+    for ( i in 1:6){
+      yyy[1,i] <- a[i]
+    }
+    apply(xxx, 1, function(x) sum(x == ui_df))
+  
