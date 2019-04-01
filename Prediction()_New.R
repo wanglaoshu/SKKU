@@ -64,11 +64,6 @@ prediction <- function(data = NULL, Support = 0.001, Confidence = 0.4, a = NULL,
       data_train <- as(data_train, 'transactions')
       data_test <- as(data_test, 'transactions')
     }
-    #print(nrow(data_train))
-    #print(nrow(data_test))
-    #print(nrow(siba))
-    #print(nrow(suba))
-    #print('흠')
     RSN <- grep("^RSN_CD=",itemLabels(data_train), value = TRUE)
     ################
     # Generate rules (apriori)
@@ -131,7 +126,6 @@ prediction <- function(data = NULL, Support = 0.001, Confidence = 0.4, a = NULL,
       data_1df[i,7] <- data_1df[i,6] %in% recommendation
       cm1 <- c(cm1, recommendation)
       cm2 <- c(cm2, as.character(data_1df[i,6]))
-      #### 퓨전 만들어보장 ######
     })
     
     
