@@ -1,4 +1,4 @@
-data <- read.csv(url('http://bit.ly/2I4TPs0'), header=TRUE, sep=',')
+data <- read.csv(url('http://bit.ly/2FOA3Q6'), header=TRUE, sep=',')
 pkgs <- c("tidyr", "arules",'caret')
 install.packages(pkgs)
 sapply(pkgs, require, character.only = T)
