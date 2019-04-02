@@ -1,15 +1,70 @@
-data <- read.csv(url('http://bit.ly/2FOA3Q6'), header=TRUE, sep=',')
-pkgs <- c("tidyr", "arules",'caret')
-install.packages(pkgs)
+#########################################################################################################################
+### Project  : NIPA - Revision Log
+### Script   : Prediction()_new.R
+### Contents : Revision Log Recommendation
+#########################################################################################################################
+
+#########################################################################################################################
+### Setting up environment
+#########################################################################################################################
+
+# Load library  
+pkgs <- c("tidyr", "arules", "caret")
 sapply(pkgs, require, character.only = T)
-install.packages('tidyr')
-#Randomly shuffle my data
-#set.seed(1)
-#data <- data[sample(nrow(data)), ]
+
+# Parameters
+p.names <- c("SHIP_NO", "DWG_TYPE", "DWG_BLOCK", "DWG_PROC", "DWG_STAGE", "RSN_CD")
+p.spt   <- 0.01
+p.cfd   <- 0.01
+
+# Load data
+df.raw         <- read.csv(url('http://bit.ly/2FOA3Q6'), header = T, sep = ',')
+df.arm         <- df.raw[, p.names]
+df.arm$SHIP_NO <- as.factor(substr(df.arm$SHIP_NO, 1, 1))
+
+
+#########################################################################################################################
+### Analysis
+#########################################################################################################################
+
+# DF for Rule extraction
+n.rules <- nrow(df.arm) # or n
+df.eff  <- as(df.arm[sample(1:nrow(df.arm), n.rules),], "transactions")
+
+# Generate Rules
+RSN_CD    <- grep("^RSN_CD=", itemLabels(df.eff), value = T)
+res.rules <- apriori(data = df.eff, parameter = list(support = p.spt, confidence = p.cfd), 
+                     appearance = list(rhs = RSN_CD), control = list(verbose = F))
+
+# Convert rules into DF
+df.lhs   <- as(inspect(lhs(res.rules)), "data.frame")
+df.rhs   <- as(inspect(rhs(res.rules)), "data.frame")
+df.rules <- matrix(NA, dim(df.rhs)[1], length(p.names), dimnames = list(NULL, p.names))
+
+for(i in p.names){
+  if(i == "RSN_CD"){
+    df.rules[, i] <- apply(df.rhs, 1, function(x) substr(sub(".*=", "", x), 1, 3))
+  }else{
+    id.sn  <- which(apply(df.lhs, 1, function(x) grepl(i, x)))
+    n.temp <- rep(NA, length(id.sn))
+    for(j in id.sn){
+      temp.str  <- strsplit(as.character(df.lhs[j,]), ",")
+      id.str    <- unlist(lapply(temp.str, function(x) grep(i, x)))
+      n.temp[j] <- substr(sub(".*=", "", unlist(temp.str)[id.str]), 1, ifelse(i == "DWG_BLOCK", 2, 1))
+    }
+    df.rules[, i] <- n.temp  
+  }
+}
+
+# Predict (based on counts as of now)
+key   <- df.arm[sample(1:nrow(df.arm), 1),]
+count <- apply(data.frame(df.rules)[,-6], 1, function(x) sum(x == key[,-6], na.rm = T))
+cbind(df.rules, quality(res.rules))[order(-count),][1:5,]
+
+
 
 
 ### Prediction () ##################################################################################################
-
 prediction <- function(data = NULL, Support = 0.001, Confidence = 0.4, a = NULL, b = NULL, c = NULL, d = NULL, e = NULL, K = NULL, result = 1, examination = FALSE){
   
   # Data processing before generating rules 
@@ -78,7 +133,7 @@ prediction <- function(data = NULL, Support = 0.001, Confidence = 0.4, a = NULL,
     x <- rules_df
     
     # Put the inputs into a list
-
+    
     #exam_pred <- data.frame(matrix(ncol = 1, nrow = nrow(data_2)))
     
     ### Data-train이 잘 만들어졌다는 전제 하에...###
@@ -145,93 +200,92 @@ prediction <- function(data = NULL, Support = 0.001, Confidence = 0.4, a = NULL,
 
 
 
-    
-##### 연습용 ############################    
-    y[9] <- x[]
-    data_1 <- lapply(data_1, unlist)
-    input <- data_2[k]
-    input <- as(input,'data.frame')
-    first_proc <- gsub('[{}]', '', input[,1])
-    first_proc <- gsub(' ', '', first_proc)
-    second_proc <- strsplit(first_proc, ',')
-    input <- unlist(second_proc)
-    data_2 <- data.frame(matrix(ncol = 2, nrow = nrow(data_1)))
-    
 
-    
-    for ( i in 1:nrow(ut_df)){
-      ut_df[i,1] <- gsub('[{}]', '', ut_df[i,1])
-      ut_df[i,1] <- gsub(' ', '', ut_df[i,1])
-      ut_df[i,1] <- strsplit(ut_df[i,1], ',')
-    }
-    
-    ut_df[1] <- gsub('[{}]', '', ut_df[1])
-    first_proc <- gsub(' ', '', first_proc)
-    second_proc <- strsplit(first_proc, ',')
-    
-    ut_df_l <- sapply(ut_df[1], function(x){
-      first_proc <- gsub('[{}]', '', x)
-    })
-    
-    idk <- data.frame(matrix(ncol=3))
-    for ( i in 1:nrow(ut_df_u)){
-      a <- subset(ut_df, ut_df[1] == ut_df_u[i,1])
-      b <- as(a[2],'list')
-      b <- unlist(b)
-      b <- paste(b, collapse =',')
-      idk[i,1] <- ut_df_u[i,1] 
-      idk[i,2] <- nrow(a)
-      idk[i,3] <- b
-      }  
-    count <- apply()
-    
-    data_t <- data[,c(1,3,4,5,6,2)]
-    data_t <- as(data_t, 'transactions')
-    data_t_df <- as(data_t, 'data.frame')
-    data_t_df_l <- sapply(data_t_df[1], function(x){
-      first_proc <- gsub('[{}]', '', x)
-    })
-    data_t_df <- as.data.frame(data_t_df_l)
-    data_t_df <- separate(data = data_t_df, col = items, into = c("Ant", 'Con'), sep = ',RSN_CD=')
-    b <- subset()
-    table[2]
-    
-    c <- apply(b, 1, function(x){
-      paste()
-    })
-    CON <- grep("^Con=",itemLabels(c_t), value = TRUE)
-    rr <- apriori(data = c_t, parameter = list(support = 0.0001, confidence = 0.1), appearance = list(rhs = CON))
-    
-    system.time(for (i in 1:length(data_1)){
-      ui <- unlist(data_1[i])})
-    
-    xxx <- sapply(xxx, function(x){
-      a <- gsub('[{}]','',x)
-    })
-    xxx[6] <- sapply(xxx[6], function(x){
-      a <- gsub('RSN_CD=','',x)
-    })
-    
-    colnames(xxx) <- c('SHIP_NO','DWG_TYPE','DWG_BLOCK','DWG_PROC',"DWG_STAGE",'RSN_CD')
-    
-    library(stringr)
-    install.packages(splitstackshape)
-    library(splitstackshape)
-    xxx <- separate(xxz, col = newcol, into = c('1','2','3','4','5','6'), sep = ',')
-    
-    
-  
-    xxx <- cbind(xx[1],xx[2])
-    xxx <- unite(xxx, newcol, c(Input, Output), sep = ',')
-    xxx <- sapply(xxx, function(x){
-      a <- gsub('[{}]','',x)
-    })
-    xxz <- as.data.frame(xxx)
-    xxx <- separate(xxz, col = newcol, into = c('1','2','3','4','5','6'), sep = ',')
-    
-    yyy <- data.frame()
-    for ( i in 1:6){
-      yyy[1,i] <- a[i]
-    }
-    apply(xxx, 1, function(x) sum(x == ui_df))
-  
+##### 연습용 ############################    
+y[9] <- x[]
+data_1 <- lapply(data_1, unlist)
+input <- data_2[k]
+input <- as(input,'data.frame')
+first_proc <- gsub('[{}]', '', input[,1])
+first_proc <- gsub(' ', '', first_proc)
+second_proc <- strsplit(first_proc, ',')
+input <- unlist(second_proc)
+data_2 <- data.frame(matrix(ncol = 2, nrow = nrow(data_1)))
+
+
+
+for ( i in 1:nrow(ut_df)){
+  ut_df[i,1] <- gsub('[{}]', '', ut_df[i,1])
+  ut_df[i,1] <- gsub(' ', '', ut_df[i,1])
+  ut_df[i,1] <- strsplit(ut_df[i,1], ',')
+}
+
+ut_df[1] <- gsub('[{}]', '', ut_df[1])
+first_proc <- gsub(' ', '', first_proc)
+second_proc <- strsplit(first_proc, ',')
+
+ut_df_l <- sapply(ut_df[1], function(x){
+  first_proc <- gsub('[{}]', '', x)
+})
+
+idk <- data.frame(matrix(ncol=3))
+for ( i in 1:nrow(ut_df_u)){
+  a <- subset(ut_df, ut_df[1] == ut_df_u[i,1])
+  b <- as(a[2],'list')
+  b <- unlist(b)
+  b <- paste(b, collapse =',')
+  idk[i,1] <- ut_df_u[i,1] 
+  idk[i,2] <- nrow(a)
+  idk[i,3] <- b
+}  
+count <- apply()
+
+data_t <- data[,c(1,3,4,5,6,2)]
+data_t <- as(data_t, 'transactions')
+data_t_df <- as(data_t, 'data.frame')
+data_t_df_l <- sapply(data_t_df[1], function(x){
+  first_proc <- gsub('[{}]', '', x)
+})
+data_t_df <- as.data.frame(data_t_df_l)
+data_t_df <- separate(data = data_t_df, col = items, into = c("Ant", 'Con'), sep = ',RSN_CD=')
+b <- subset()
+table[2]
+
+c <- apply(b, 1, function(x){
+  paste()
+})
+CON <- grep("^Con=",itemLabels(c_t), value = TRUE)
+rr <- apriori(data = c_t, parameter = list(support = 0.0001, confidence = 0.1), appearance = list(rhs = CON))
+
+system.time(for (i in 1:length(data_1)){
+  ui <- unlist(data_1[i])})
+
+xxx <- sapply(xxx, function(x){
+  a <- gsub('[{}]','',x)
+})
+xxx[6] <- sapply(xxx[6], function(x){
+  a <- gsub('RSN_CD=','',x)
+})
+
+colnames(xxx) <- c('SHIP_NO','DWG_TYPE','DWG_BLOCK','DWG_PROC',"DWG_STAGE",'RSN_CD')
+
+library(stringr)
+install.packages(splitstackshape)
+library(splitstackshape)
+xxx <- separate(xxz, col = newcol, into = c('1','2','3','4','5','6'), sep = ',')
+
+
+
+xxx <- cbind(xx[1],xx[2])
+xxx <- unite(xxx, newcol, c(Input, Output), sep = ',')
+xxx <- sapply(xxx, function(x){
+  a <- gsub('[{}]','',x)
+})
+xxz <- as.data.frame(xxx)
+xxx <- separate(xxz, col = newcol, into = c('1','2','3','4','5','6'), sep = ',')
+
+yyy <- data.frame()
+for ( i in 1:6){
+  yyy[1,i] <- a[i]
+}
+apply(xxx, 1, function(x) sum(x == ui_df))
