@@ -314,5 +314,3 @@ prediction <- function(data = NULL, Support = NULL, Confidence = NULL, a = NULL,
 
 
 system.time(prediction(data = data, Support = 0.001, Confidence = 0.4,'SHIP_NO=2','DWG_BLOCK=S1','DWG_TYPE=S','DWG_PROC=C','DWG_STAGE=1'))
-
-# test change
